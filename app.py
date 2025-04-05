@@ -1,5 +1,5 @@
 # Importação
-from flask import Flask, request 
+from flask import Flask, request, jsonify 
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
@@ -19,7 +19,16 @@ class Product(db.Model):
 @app.route('/api/products/add', methods=['POST'])
 def add_product():
     data = request.json
-    return data
+    if 'name' in data and 'price' in data:
+        product = Product(
+            name=data['name'],
+            price=data['price'],
+            description=data.get('description', '')
+        )
+        db.session.add(product)
+        db.session.commit()
+        return jsonify({'message':'Product added successfully!'})
+    return jsonify({'message': 'Invalid product data',}), 400
 # Define uma rota raiz (página inicial) e a função que será chamada quando requisitada
 @app.route('/')
 def hello_world():
