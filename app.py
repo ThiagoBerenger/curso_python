@@ -25,6 +25,16 @@ class Product(db.Model):
     description = db.Column(db.Text, nullable=True)
 
 
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.json
+    user = User.query.filter_by(username=data.get('username')).first()
+
+    if user and data.get('password') == user.password:
+            return jsonify({'message': 'Login is successfully!'})
+
+    return jsonify({'message': 'Unauthorized. Invalid credentials!'}), 401
+
 @app.route('/api/products/add', methods=['POST'])
 def add_product():
     data = request.json
