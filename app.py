@@ -2,12 +2,16 @@
 from flask import Flask, request, jsonify 
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
-from flask_login import UserMixin
+from flask_login import UserMixin, login_user, LoginManager, login_required
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'minha_chave_123' 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///ecommerce.db'  
 
+login_manager = LoginManager()
 db = SQLAlchemy(app)
+login_manager.init_app(app)
+login_manager.login_view = 'login'
 CORS(app) 
 
 # Modelagem
@@ -31,11 +35,13 @@ def login():
     user = User.query.filter_by(username=data.get('username')).first()
 
     if user and data.get('password') == user.password:
+            login_user(user)
             return jsonify({'message': 'Login is successfully!'})
 
     return jsonify({'message': 'Unauthorized. Invalid credentials!'}), 401
 
 @app.route('/api/products/add', methods=['POST'])
+@login_required
 def add_product():
     data = request.json
     if 'name' in data and 'price' in data:
@@ -51,6 +57,7 @@ def add_product():
 # Define uma rota raiz (página inicial) e a função que será chamada quando requisitada
 
 @app.route('/api/products/delete/<int:product_id>', methods=['DELETE'])
+@login_required
 def delete_product(product_id):
     # Recuperar o produto da base de dados
     # Verificar se o produto é valido
@@ -75,6 +82,7 @@ def get_product_details(product_id):
 
 
 @app.route('/api/products/update/<int:product_id>', methods=['PUT'])
+@login_required
 def update_product(product_id):
     product = Product.query.get(product_id)
     if not product:
